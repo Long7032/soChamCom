@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bảng Chấm Công</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #343a40;
+            color: white;
+            padding: 20px;
+            box-sizing: border-box;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+        }
+
+        .sidebar h3 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            padding: 10px 0;
+            border-bottom: 1px solid #495057;
+            cursor: pointer;
+        }
+
+        .sidebar ul li:hover {
+            background-color: #495057;
+        }
+
+        .main-content {
+            margin-left: 200px;
+            padding: 20px;
+            width: calc(100% - 200px);
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .controls label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .controls input,
+        .controls select,
+        .controls button {
+            padding: 6px 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            min-width: 120px;
+        }
+
+        .controls button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s ease;
+        }
+
+        .controls button:hover {
+            background-color: #0056b3;
+        }
+
+        .table-container {
+            overflow: auto;
+            max-height: 70vh;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: white;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: max-content;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            text-align: center;
+            padding: 6px;
+            min-width: 36px;
+        }
+
+        thead tr:first-child th {
+            position: sticky;
+            top: 0;
+            background-color: #e9ecef;
+            z-index: 3;
+        }
+
+        thead tr:nth-child(2) th {
+            position: sticky;
+            top: 38px;
+            background-color: #f8f9fa;
+            z-index: 2;
+        }
+
+        th.stt,
+        td.stt {
+            position: sticky;
+            left: 0;
+            background: #fff;
+            z-index: 4;
+            min-width: 60px;
+        }
+
+        th.name,
+        td.name {
+            position: sticky;
+            left: 60px;
+            background: #fff;
+            z-index: 4;
+            min-width: 200px;
+            text-align: left;
+            padding-left: 8px;
+        }
+
+        th.position,
+        td.position {
+            position: sticky;
+            left: 260px;
+            background: #fff;
+            z-index: 4;
+            min-width: 120px;
+        }
+
+        td.session-0,
+        th.session-0 {
+            background-color: #f9f9f9;
+        }
+
+        td.session-1,
+        th.session-1 {
+            background-color: #ffffff;
+        }
+
+        td.session-2,
+        th.session-2 {
+            background-color: #f9f9f9;
+        }
+
+        td.session-3,
+        th.session-3 {
+            background-color: #ffffff;
+        }
+
+        th.day-group {
+            border-left: 2px solid #ccc;
+            border-right: 2px solid #ccc;
+        }
+
+        td.day-separator {
+            border-left: 2px solid #ccc;
+        }
+
+        input.day-input {
+            width: 28px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            padding: 2px;
+            transition: border-color 0.2s ease;
+        }
+
+        input.day-input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <h3>Menu</h3>
+        <ul>
+            <li>Số Chấm Cơm</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <h2>Bảng Chấm Cơm</h2>
+
+        <div class="controls">
+            <div>
+                <label for="searchInput">Tìm kiếm:</label>
+                <input type="text" id="searchInput" placeholder="Nhập tên...">
+            </div>
+            <div>
+                <label for="monthSelect">Tháng:</label>
+                <select id="monthSelect"></select>
+            </div>
+            <div>
+                <label for="yearSelect">Năm:</label>
+                <select id="yearSelect"></select>
+            </div>
+            <div>
+                <button onclick="renderTable()">Tải lại bảng</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead id="tableHead"></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const employees = Array.from({ length: 20 }, (_, i) => ({
+            stt: i + 1,
+            name: `Nhân viên ${i + 1}`,
+            position: ['Công Vụ', 'Binh Nhì', 'Binh Nhất', 'Hạ Sĩ'][i % 4]
+        }));
+
+        const sessions = ['Sáng', 'Trưa', 'Chiều', 'Tối'];
+
+        function getDaysInMonth(month, year) {
+            return new Date(year, month, 0).getDate();
+        }
+
+        function renderMonthYearSelects() {
+            const monthSel = document.getElementById('monthSelect');
+            const yearSel = document.getElementById('yearSelect');
+            const now = new Date();
+            const thisMonth = now.getMonth() + 1;
+            const thisYear = now.getFullYear();
+
+            for (let i = 1; i <= 12; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = `Tháng ${i}`;
+                if (i === thisMonth) opt.selected = true;
+                monthSel.appendChild(opt);
+            }
+
+            for (let y = thisYear - 1; y <= thisYear + 1; y++) {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                if (y === thisYear) opt.selected = true;
+                yearSel.appendChild(opt);
+            }
+        }
+
+        function renderTable() {
+            const month = parseInt(document.getElementById('monthSelect').value);
+            const year = parseInt(document.getElementById('yearSelect').value);
+            const search = document.getElementById('searchInput').value.toLowerCase();
+
+            const days = getDaysInMonth(month, year);
+            const head = document.getElementById('tableHead');
+            const body = document.getElementById('tableBody');
+
+            let headHTML = '<tr>';
+            headHTML += '<th class="sticky stt" rowspan="2">STT</th>';
+            headHTML += '<th class="sticky name" rowspan="2">Tên</th>';
+            headHTML += '<th class="sticky position" rowspan="2">Chức vụ</th>';
+            for (let d = 1; d <= days; d++) {
+                headHTML += `<th class="sticky text-center day-group" colspan="4">${d}</th>`;
+            }
+            headHTML += '</tr><tr>';
+            for (let d = 1; d <= days; d++) {
+                sessions.forEach((session, idx) => {
+                    headHTML += `<th class="session-${idx}">${session}</th>`;
+                });
+            }
+            head.innerHTML = headHTML;
+
+            let bodyHTML = '';
+            employees
+                .filter(e => e.name.toLowerCase().includes(search))
+                .forEach(emp => {
+                    bodyHTML += `<tr>
+            <td class="stt">${emp.stt}</td>
+            <td class="name">${emp.name}</td>
+            <td class="position">${emp.position}</td>`;
+                    for (let d = 1; d <= days; d++) {
+                        sessions.forEach((session, idx) => {
+                            const title = `${session} ${d}/${month}/${year}`;
+                            const isFirstSession = idx === 0;
+                            const tdClass = `session-${idx}` + (isFirstSession ? ' day-separator' : '');
+                            bodyHTML += `
+                <td class="${tdClass}">
+                  <input type="text" maxlength="1" class="day-input" title="${title}" 
+                         oninput="this.value = this.value.slice(0, 1)">
+                </td>`;
+                        });
+                    }
+                    bodyHTML += '</tr>';
+                });
+
+            body.innerHTML = bodyHTML;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMonthYearSelects();
+            renderTable();
+            document.getElementById('searchInput').addEventListener('input', renderTable);
+        });
+    </script>
+</body>
+
+</html>
